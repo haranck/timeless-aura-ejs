@@ -139,6 +139,22 @@ npm start
 ```
 The application will be running at `http://localhost:3000` 🎉
 
+### 🐳 Running with Docker
+
+You can also easily run this project using Docker.
+
+**1. Build the Docker Image:**
+```bash
+docker build -t timeless-aura .
+```
+
+**2. Run the Container:**
+Make sure you have your `.env` file set up, then run:
+```bash
+docker run -p 3000:3000 --env-file .env timeless-aura
+```
+The application will be accessible at `http://localhost:3000` 🎉
+
 ---
 
 ## 📜 License
