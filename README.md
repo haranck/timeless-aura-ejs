@@ -141,19 +141,23 @@ The application will be running at `http://localhost:3000` 🎉
 
 ### 🐳 Running with Docker
 
-You can also easily run this project using Docker.
+The easiest way to run the application is using Docker Compose. Make sure Docker Desktop is running and your `.env` file is set up.
 
-**1. Build the Docker Image:**
+**Start the container:**
 ```bash
-docker build -t timeless-aura .
-```
-
-**2. Run the Container:**
-Make sure you have your `.env` file set up, then run:
-```bash
-docker run -p 3000:3000 --env-file .env timeless-aura
+docker compose up -d --build
 ```
 The application will be accessible at `http://localhost:3000` 🎉
+
+**View the live logs:**
+```bash
+docker compose logs -f
+```
+
+**Stop the container:**
+```bash
+docker compose down
+```
 
 ---
 
