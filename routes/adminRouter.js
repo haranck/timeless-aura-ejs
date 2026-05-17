@@ -14,11 +14,20 @@ const couponController = require('../controllers/admin/couponController')
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        const fs = require('fs');
+        let uploadDir;
         if (req.originalUrl.includes('/addBrand')) {
-            cb(null, path.join(__dirname, '../public/uploads/brands'));
+            uploadDir = path.join(__dirname, '../public/uploads/brands');
         } else {
-            cb(null, path.join(__dirname, '../public/uploads/product-images'));
+            uploadDir = path.join(__dirname, '../public/uploads/product-images');
         }
+        
+        // Create the directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

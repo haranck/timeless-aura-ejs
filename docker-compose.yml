@@ -7,4 +7,6 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    volumes:
+      - ./public/uploads:/usr/src/app/public/uploads
     restart: unless-stopped
