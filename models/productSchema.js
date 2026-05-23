@@ -1,70 +1,70 @@
-const mongoose = require('mongoose');
-const {Schema} = mongoose
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const productSchema = new Schema({
-   productName: {
+const productSchema = new Schema(
+  {
+    productName: {
       type: String,
       required: true,
       unique: true, // Prevent duplicate product names
-   },
-   regularPrice: {
+    },
+    regularPrice: {
       type: Number,
       required: true,
-   },
-   salePrice: {
+    },
+    salePrice: {
       type: Number,
       required: true,
-   },
-   description: {
+    },
+    description: {
       type: String,
       required: true,
-   },
-   category: {
+    },
+    category: {
       type: Schema.Types.ObjectId,
       ref: "Category",
       required: true,
-   },
-   brand: {
+    },
+    brand: {
       type: Schema.Types.ObjectId,
       ref: "Brand",
       required: true,
-   },
-   quantity: {
+    },
+    quantity: {
       type: Number,
       default: 0,
-   },
-   productImages: [{ 
-      type: String,
-      required: true,
-   }],
-   createdAt: {
+    },
+    productImages: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    createdAt: {
       type: Date,
       default: Date.now,
-   },
-   isListed: {
-      type: Boolean, 
+    },
+    isListed: {
+      type: Boolean,
       default: false,
-   }, 
-   productOffer:{
+    },
+    productOffer: {
       type: Number,
-      default: 0
-   },
-   // offerStartDate: {
-   //    type: Date,
-   //    default: null
-   // },
-   offerEndDate: {
+      default: 0,
+    },
+    offerEndDate: {
       type: Date,
-      default: null
-   },
-   status: {
+      default: null,
+    },
+    status: {
       type: String,
       enum: ["available", "out of stock"],
       required: true,
       default: "available",
-   },
-}, { timestamps: true });
+    },
+  },
+  { timestamps: true },
+);
 
-
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 module.exports = Product;
