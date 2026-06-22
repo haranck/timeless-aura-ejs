@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Timeless%20Aura&fontSize=60&fontAlignY=35&desc=A%20Premium,%20Full-Stack%20E-Commerce%20Experience&descAlignY=55&descAlign=50" />
+  ##Timeless Aura
 
   <p align="center">
     <b>Seamless shopping • Secure authentication • Smart discounts • Admin dashboard</b>
@@ -167,7 +167,5 @@ This project is licensed under the **[MIT License](LICENSE)**. See the `LICENSE`
 
 ---
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer" width="100%" />
   <br/>
-  <i>Crafted with ❤️ by the Timeless Team</i>
 </div>
