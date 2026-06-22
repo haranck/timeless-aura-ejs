@@ -1,6 +1,6 @@
 <div align="center">
   
-  ## Timeless Aura
+ <h1>Timeless Aura</h1>
 
   <p align="center">
     <b>Seamless shopping • Secure authentication • Smart discounts • Admin dashboard</b>
