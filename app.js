@@ -4,6 +4,7 @@ const path = require("path");
 const session = require("express-session");
 const env = require("dotenv").config();
 const db = require("./config/db");
+const HTTP_STATUS = require("./constants/httpStatusCodes");
 const flash = require("connect-flash");
 const nocache = require("nocache");
 db();
@@ -24,7 +25,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: false,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      maxAge: Number(process.env.SESSION_MAX_AGE),
       httpOnly: true,
     },
   }),
@@ -48,7 +49,7 @@ app.use("/error", (req, res, next) => {
 });
 
 app.use("*", (req, res) => {
-  res.status(404).render("error", {
+  res.status(HTTP_STATUS.NOT_FOUND).render("error", {
     title: "Oops!",
     message: "The page you're looking for doesn't exist.",
     user: req.session.userData,
@@ -57,7 +58,7 @@ app.use("*", (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).render("error", {
+  res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("error", {
     title: "Oops!",
     message: err.message || "Something went wrong!",
     user: req.session.userData,
