@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Cart = require("../../models/cartSchema");
@@ -55,7 +57,7 @@ const loadCart = async (req, res) => {
     });
   } catch (error) {
     console.error("Error loading cart:", error);
-    res.status(500).send("Failed to load cart");
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.FAILED_TO_LOAD_CART);
   }
 };
 
@@ -65,18 +67,18 @@ const addToCart = async (req, res) => {
     const userId = req.session.user;
 
     if (!productId) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Product ID is required",
+        message: MESSAGES.PRODUCT_ID_IS_REQUIRED,
       });
     }
 
     const product = await Product.findById(productId).populate("category");
 
     if (!product) {
-      return res.status(404).json({
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: "Product not found",
+        message: MESSAGES.PRODUCT_NOT_FOUND,
       });
     }
 
@@ -99,21 +101,21 @@ const addToCart = async (req, res) => {
       let newQuantity = cart.items[existingItemIndex].quantity + itemQuantity;
 
       if (newQuantity > 5) {
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: "You can only order up to 5 items",
+          message: MESSAGES.YOU_CAN_ONLY_ORDER_UP_TO_5_ITEMS,
         });
       }
       if (newQuantity > product.quantity) {
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: "You can not order more than available stock",
+          message: MESSAGES.YOU_CAN_NOT_ORDER_MORE_THAN_AVAILABLE_ST,
         });
       }
       if (newQuantity < 1) {
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
-          message: "You can not order less than 1 item",
+          message: MESSAGES.YOU_CAN_NOT_ORDER_LESS_THAN_1_ITEM,
         });
       }
 
@@ -142,17 +144,17 @@ const addToCart = async (req, res) => {
 
     await cart.save();
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: "Product added to cart successfully",
+      message: MESSAGES.PRODUCT_ADDED_TO_CART_SUCCESSFULLY,
       cartTotal: cart.cartTotal,
       itemsCount: cart.items.length,
     });
   } catch (error) {
     console.error("Error in add to cart:", error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Failed to add product to cart \n LOGIN FIRST",
+      message: MESSAGES.FAILED_TO_ADD_PRODUCT_TO_CART_N_LOGIN_FI,
     });
   }
 };
@@ -166,8 +168,8 @@ const removeCartItem = async (req, res) => {
 
     if (!cart) {
       return res
-        .status(404)
-        .json({ success: false, message: "Cart not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.CART_NOT_FOUND });
     }
 
     const itemIndex = cart.items.findIndex(
@@ -176,8 +178,8 @@ const removeCartItem = async (req, res) => {
 
     if (itemIndex === -1) {
       return res
-        .status(404)
-        .json({ success: false, message: "Product not found in cart" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.PRODUCT_NOT_FOUND_IN_CART });
     }
 
     cart.items.splice(itemIndex, 1);
@@ -190,13 +192,13 @@ const removeCartItem = async (req, res) => {
     await cart.save();
 
     return res
-      .status(200)
-      .json({ success: true, message: "Item removed from cart" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.ITEM_REMOVED_FROM_CART });
   } catch (error) {
     console.error("Error removing item:", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 

@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
@@ -58,7 +60,7 @@ const addProducts = async (req, res) => {
         return res.render("product-add", {
           cat: category,
           brand: brand,
-          message: "Category not found",
+          message: MESSAGES.CATEGORY_NOT_FOUND,
         });
       }
 
@@ -69,7 +71,7 @@ const addProducts = async (req, res) => {
         return res.render("product-add", {
           cat: category,
           brand: brand,
-          message: "Brand not found",
+          message: MESSAGES.BRAND_NOT_FOUND,
         });
       }
 
@@ -83,7 +85,7 @@ const addProducts = async (req, res) => {
         return res.render("product-add", {
           cat: category,
           brand: brand,
-          message: "All required fields must be filled",
+          message: MESSAGES.ALL_REQUIRED_FIELDS_MUST_BE_FILLED,
         });
       }
 
@@ -93,7 +95,7 @@ const addProducts = async (req, res) => {
         return res.render("product-add", {
           cat: category,
           brand: brand,
-          message: "At least 3 product images are required",
+          message: MESSAGES.AT_LEAST_3_PRODUCT_IMAGES_ARE_REQUIRED,
         });
       }
 
@@ -120,7 +122,7 @@ const addProducts = async (req, res) => {
       return res.render("product-add", {
         cat: category,
         brand: brand,
-        message: "Product already exists",
+        message: MESSAGES.PRODUCT_ALREADY_EXISTS,
       });
     }
   } catch (error) {
@@ -132,7 +134,7 @@ const addProducts = async (req, res) => {
     return res.render("product-add", {
       cat: category,
       brand: brand,
-      message: "Error adding product: " + error.message,
+      message: MESSAGES.ERROR_ADDING_PRODUCT + error.message,
     });
   }
 };
@@ -180,8 +182,8 @@ const toggleProductList = async (req, res) => {
     const productToToggle = await Product.findById(productId);
 
     if (!productToToggle) {
-      return res.status(404).json({
-        error: "Product not found",
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        error: MESSAGES.PRODUCT_NOT_FOUND,
         success: false,
       });
     }
@@ -195,8 +197,8 @@ const toggleProductList = async (req, res) => {
     });
   } catch (error) {
     console.error("Error toggling product list status:", error);
-    res.status(500).json({
-      error: "Failed to toggle product status",
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      error: MESSAGES.FAILED_TO_TOGGLE_PRODUCT_STATUS,
       success: false,
     });
   }
@@ -252,18 +254,17 @@ const editProduct = async (req, res) => {
       !data.salePrice ||
       !data.brand
     ) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message:
-          "Product Name, Category, Regular Price, Sale Price, and Brand are required",
+        message: MESSAGES.PRODUCT_NAME_CATEGORY_REGULAR_PRICE_SALE,
       });
     }
 
     const existingProduct = await Product.findById(id);
     if (!existingProduct) {
-      return res.status(404).json({
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: "Product not found",
+        message: MESSAGES.PRODUCT_NOT_FOUND,
       });
     }
 
@@ -276,9 +277,9 @@ const editProduct = async (req, res) => {
       regularPrice <= 0 ||
       salePrice <= 0
     ) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Invalid price values",
+        message: MESSAGES.INVALID_PRICE_VALUES,
       });
     }
 
@@ -286,16 +287,16 @@ const editProduct = async (req, res) => {
     const categoryId = await Category.findOne({ _id: data.category });
 
     if (!categoryId) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Category not found",
+        message: MESSAGES.CATEGORY_NOT_FOUND,
       });
     }
     const brand = await Brand.findOne({ brandName: data.brand });
     if (!brand) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Brand not found",
+        message: MESSAGES.BRAND_NOT_FOUND,
       });
     }
 
@@ -351,9 +352,9 @@ const editProduct = async (req, res) => {
     const updatedImages = [...remainingImages, ...newImages, ...croppedImages];
 
     if (updatedImages.length < 3 || updatedImages.length > 4) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "You must have between 3 and 4 images",
+        message: MESSAGES.YOU_MUST_HAVE_BETWEEN_3_AND_4_IMAGES,
       });
     }
 
@@ -384,13 +385,13 @@ const editProduct = async (req, res) => {
       }
     }
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: "Product updated successfully",
+      message: MESSAGES.PRODUCT_UPDATED_SUCCESSFULLY,
     });
   } catch (error) {
     console.error("Error editing product:", error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: error.message,
     });
@@ -404,8 +405,8 @@ const deleteSingleImage = async (req, res) => {
     const product = await Product.findById(productIdToServer);
     if (!product) {
       return res
-        .status(404)
-        .send({ status: false, message: "Product not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .send({ status: false, message: MESSAGES.PRODUCT_NOT_FOUND });
     }
 
     const imageRemoved = await Product.findByIdAndUpdate(
@@ -417,10 +418,10 @@ const deleteSingleImage = async (req, res) => {
     if (!imageRemoved) {
       console.error("Failed to remove image from product");
       return res
-        .status(400)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .send({
           status: false,
-          message: "Failed to remove image from product",
+          message: MESSAGES.FAILED_TO_REMOVE_IMAGE_FROM_PRODUCT,
         });
     }
 
@@ -455,7 +456,7 @@ const deleteSingleImage = async (req, res) => {
 
     res.send({
       status: true,
-      message: "Image deleted successfully",
+      message: MESSAGES.IMAGE_DELETED_SUCCESSFULLY,
       remainingImages: imageRemoved.productImages || [],
     });
   } catch (error) {
@@ -465,9 +466,9 @@ const deleteSingleImage = async (req, res) => {
       message: error.message,
       stack: error.stack,
     });
-    res.status(500).send({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       status: false,
-      message: "Internal server error",
+      message: MESSAGES.INTERNAL_SERVER_ERROR,
       errorDetails: error.message,
     });
   }
@@ -480,9 +481,9 @@ const deleteProduct = async (req, res) => {
     const product = await Product.findById(productId);
 
     if (!product) {
-      return res.status(404).json({
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
         status: false,
-        message: "Product not found",
+        message: MESSAGES.PRODUCT_NOT_FOUND,
       });
     }
 
@@ -510,9 +511,9 @@ const deleteProduct = async (req, res) => {
 
     await Product.findByIdAndDelete(productId);
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS.OK).json({
       status: true,
-      message: "Product deleted successfully",
+      message: MESSAGES.PRODUCT_DELETED_SUCCESSFULLY,
     });
   } catch (error) {
     console.error("Error deleting product:", {
@@ -521,9 +522,9 @@ const deleteProduct = async (req, res) => {
       stack: error.stack,
     });
 
-    return res.status(500).json({
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       status: false,
-      message: error.message || "Internal server error",
+      message: error.message || MESSAGES.INTERNAL_SERVER_ERROR,
       errorDetails:
         process.env.NODE_ENV === "development"
           ? {
@@ -550,14 +551,14 @@ const addProductOffer = async (req, res) => {
 
     if (!product) {
       return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.PRODUCT_NOT_FOUND });
     }
 
     res.json({ success: true, product });
   } catch (error) {
     console.error("Error adding product offer:", error);
-    res.status(500).json({ success: false, message: "Failed to add offer" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.FAILED_TO_ADD_OFFER });
   }
 };
 
@@ -577,14 +578,14 @@ const deleteProductOffer = async (req, res) => {
 
     if (!product) {
       return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.PRODUCT_NOT_FOUND });
     }
 
     res.json({ success: true, product });
   } catch (error) {
     console.error("Error deleting product offer:", error);
-    res.status(500).json({ success: false, message: "Failed to delete offer" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.FAILED_TO_DELETE_OFFER });
   }
 };
 

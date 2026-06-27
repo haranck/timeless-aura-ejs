@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const Wishlist = require("../../models/wishlistSchema");
 const Product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
@@ -48,7 +50,7 @@ const loadWishlist = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in load wishlist:", error);
-    res.status(500).redirect("/userProfile");
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).redirect("/userProfile");
   }
 };
 const addToWishlist = async (req, res) => {
@@ -58,8 +60,8 @@ const addToWishlist = async (req, res) => {
 
     if (!userId) {
       return res
-        .status(401)
-        .json({ success: false, message: "User not logged in" });
+        .status(HTTP_STATUS.UNAUTHORIZED)
+        .json({ success: false, message: MESSAGES.USER_NOT_LOGGED_IN });
     }
 
     let wishlist = await Wishlist.findOne({ userId });
@@ -72,8 +74,8 @@ const addToWishlist = async (req, res) => {
 
     if (cart) {
       return res
-        .status(400)
-        .json({ success: false, message: "Item is already in the cart" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.ITEM_IS_ALREADY_IN_THE_CART });
     }
 
     const existingItemIndex = wishlist.items.findIndex(
@@ -81,18 +83,18 @@ const addToWishlist = async (req, res) => {
     );
     if (existingItemIndex !== -1) {
       return res
-        .status(200)
-        .json({ success: false, message: "Item already in wishlist" });
+        .status(HTTP_STATUS.OK)
+        .json({ success: false, message: MESSAGES.ITEM_ALREADY_IN_WISHLIST });
     }
 
     wishlist.items.push({ productId });
 
     await wishlist.save();
 
-    res.status(200).json({ success: true, message: "Added to wishlist" });
+    res.status(HTTP_STATUS.OK).json({ success: true, message: MESSAGES.ADDED_TO_WISHLIST });
   } catch (error) {
     console.log("error in add to wishlist", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -108,13 +110,13 @@ const removeWishlistItem = async (req, res) => {
 
     if (!wishlist) {
       return res
-        .status(404)
-        .json({ success: false, message: "Wishlist not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.WISHLIST_NOT_FOUND });
     }
-    res.status(200).json({ success: true, message: "Removed from wishlist" });
+    res.status(HTTP_STATUS.OK).json({ success: true, message: MESSAGES.REMOVED_FROM_WISHLIST });
   } catch (error) {
     console.log("error in remove wishlist item", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 

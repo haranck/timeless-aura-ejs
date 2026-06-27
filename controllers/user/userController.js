@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
@@ -50,7 +52,7 @@ const loadHompage = async (req, res) => {
     }
   } catch (error) {
     console.log("error loading home page");
-    res.status(500).send("Internal server error");
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.INTERNAL_SERVER_ERROR);
   }
 };
 
@@ -59,7 +61,7 @@ const loadSignup = async (req, res) => {
     return res.render("signup");
   } catch (error) {
     console.log("error loading signup page");
-    res.status(500).send("Internal server error");
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.INTERNAL_SERVER_ERROR);
   }
 };
 
@@ -102,7 +104,7 @@ const signup = async (req, res) => {
     const existingUser = await User.findOne({ email: email });
     if (existingUser) {
       return res.render("signup", {
-        message: "User already exists with this email",
+        message: MESSAGES.USER_ALREADY_EXISTS_WITH_THIS_EMAIL,
       });
     }
     const otp = generateOtp();
@@ -125,9 +127,9 @@ const verifyOtp = async (req, res) => {
   const { otp } = req.body;
   try {
     if (!req.session.userOtp || !req.session.userData) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Session expired. Please try again.",
+        message: MESSAGES.SESSION_EXPIRED_PLEASE_TRY_AGAIN,
       });
     }
 
@@ -149,20 +151,20 @@ const verifyOtp = async (req, res) => {
 
       return res.json({
         success: true,
-        message: "Email verified successfully!",
+        message: MESSAGES.EMAIL_VERIFIED_SUCCESSFULLY,
         redirectUrl: "/login",
       });
     } else {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Invalid OTP. Please try again.",
+        message: MESSAGES.INVALID_OTP_PLEASE_TRY_AGAIN,
       });
     }
   } catch (error) {
     console.error("Error verifying OTP:", error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "An error occurred. Please try again.",
+      message: MESSAGES.AN_ERROR_OCCURRED_PLEASE_TRY_AGAIN_1,
     });
   }
 };
@@ -170,9 +172,9 @@ const verifyOtp = async (req, res) => {
 const resendOtp = async (req, res) => {
   try {
     if (!req.session.userData || !req.session.userData.email) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Session expired. Please try again.",
+        message: MESSAGES.SESSION_EXPIRED_PLEASE_TRY_AGAIN,
       });
     }
 
@@ -185,19 +187,19 @@ const resendOtp = async (req, res) => {
       console.log("New OTP sent:", otp);
       return res.json({
         success: true,
-        message: "OTP sent successfully!",
+        message: MESSAGES.OTP_SENT_SUCCESSFULLY,
       });
     } else {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Failed to send OTP. Please try again.",
+        message: MESSAGES.FAILED_TO_SEND_OTP_PLEASE_TRY_AGAIN,
       });
     }
   } catch (error) {
     console.error("Error resending OTP:", error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "An error occurred. Please try again.",
+      message: MESSAGES.AN_ERROR_OCCURRED_PLEASE_TRY_AGAIN_1,
     });
   }
 };
@@ -219,25 +221,25 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const findUser = await User.findOne({ email: email });
     if (!findUser) {
-      return res.render("login", { message: "User not found" });
+      return res.render("login", { message: MESSAGES.USER_NOT_FOUND });
     }
     if (findUser.isblocked) {
-      return res.render("login", { message: "User is blocked" });
+      return res.render("login", { message: MESSAGES.USER_IS_BLOCKED });
     }
     if (findUser.isAdmin) {
-      return res.render("login", { message: "Admin login not allowed" });
+      return res.render("login", { message: MESSAGES.ADMIN_LOGIN_NOT_ALLOWED });
     }
 
     const passwordMatch = await bcrypt.compare(password, findUser.password);
 
     if (!passwordMatch) {
-      return res.render("login", { message: "Password does not match" });
+      return res.render("login", { message: MESSAGES.PASSWORD_DOES_NOT_MATCH });
     }
     req.session.user = findUser._id;
     res.redirect("/");
   } catch (error) {
     console.log("error login user", error);
-    res.render("login", { message: "Login failed" });
+    res.render("login", { message: MESSAGES.LOGIN_FAILED });
   }
 };
 
@@ -319,7 +321,7 @@ const loadShoppingPage = async (req, res) => {
     });
   } catch (error) {
     console.log("load Shop Page error", error);
-    res.status(500).render("error", { message: "Failed to load shop page" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render("error", { message: MESSAGES.FAILED_TO_LOAD_SHOP_PAGE });
   }
 };
 
@@ -404,7 +406,7 @@ const filterProducts = async (req, res) => {
     });
   } catch (error) {
     console.log("error filtering products", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 

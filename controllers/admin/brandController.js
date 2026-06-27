@@ -1,3 +1,5 @@
+const MESSAGES = require("../../constants/messages");
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
 const Brand = require("../../models/brandSchema");
 const Product = require("../../models/productSchema");
 
@@ -34,14 +36,14 @@ const addBrand = async (req, res) => {
     });
     if (findBrand) {
       return res
-        .status(400)
-        .json({ success: false, message: "Brand already exists" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.BRAND_ALREADY_EXISTS });
     }
 
     if (!req.files || req.files.length === 0) {
       return res
-        .status(400)
-        .json({ success: false, message: "Please upload a brand image" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.PLEASE_UPLOAD_A_BRAND_IMAGE });
     }
 
     const image = req.files[0].filename;
@@ -52,7 +54,7 @@ const addBrand = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Brand added successfully",
+      message: MESSAGES.BRAND_ADDED_SUCCESSFULLY,
       brand: {
         _id: newBrand._id,
         brandName: newBrand.brandName,
@@ -63,10 +65,10 @@ const addBrand = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res
-      .status(500)
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({
         success: false,
-        message: "Something went wrong. Please try again.",
+        message: MESSAGES.SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN,
       });
   }
 };
@@ -76,15 +78,15 @@ const blockBrand = async (req, res) => {
     const id = req.query.id;
     await Brand.updateOne({ _id: id }, { $set: { isBlocked: true } });
     return res
-      .status(200)
-      .json({ success: true, message: "Brand blocked successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.BRAND_BLOCKED_SUCCESSFULLY });
   } catch (error) {
     console.log("error in block brand", error);
     return res
-      .status(500)
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({
         success: false,
-        message: "Something went wrong. Please try again.",
+        message: MESSAGES.SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN,
       });
   }
 };
@@ -94,15 +96,15 @@ const unblockBrand = async (req, res) => {
     const id = req.query.id;
     await Brand.updateOne({ _id: id }, { $set: { isBlocked: false } });
     return res
-      .status(200)
-      .json({ success: true, message: "Brand unblocked successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.BRAND_UNBLOCKED_SUCCESSFULLY });
   } catch (error) {
     console.log("error in unblock brand", error);
     return res
-      .status(500)
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({
         success: false,
-        message: "Something went wrong. Please try again.",
+        message: MESSAGES.SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN,
       });
   }
 };
@@ -112,20 +114,20 @@ const deleteBrand = async (req, res) => {
     const { id } = req.query;
     if (!id) {
       return res
-        .status(404)
-        .json({ success: false, message: "Brand not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.BRAND_NOT_FOUND });
     }
     await Brand.deleteOne({ _id: id });
     return res
-      .status(200)
-      .json({ success: true, message: "Brand deleted successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.BRAND_DELETED_SUCCESSFULLY });
   } catch (error) {
     console.log("error in delete brand", error);
     return res
-      .status(500)
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({
         success: false,
-        message: "Something went wrong. Please try again.",
+        message: MESSAGES.SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN,
       });
   }
 };

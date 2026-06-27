@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Cart = require("../../models/cartSchema");
@@ -24,7 +26,7 @@ const loadCheckout = async (req, res) => {
     });
 
     // if (!cart || cart.items.length === 0) {
-    //     return res.status(400).json({ success: false, message: "Cart is empty" });
+    //     return res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: MESSAGES.CART_IS_EMPTY });
     // }
 
     const availableItems = cart.items.filter(
@@ -90,7 +92,7 @@ const editCheckoutAddress = async (req, res) => {
 
     if (!address_id) {
       console.log("Invalid Address ID:", address_id);
-      return res.status(400).json({ error: "Invalid address ID" });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: MESSAGES.INVALID_ADDRESS_ID });
     }
 
     const address = await Address.findOne({
@@ -98,14 +100,14 @@ const editCheckoutAddress = async (req, res) => {
       "address._id": address_id,
     }); // If the user has multiple address it help find curnt indx
     if (!address) {
-      return res.status(404).json({ error: "Address not found" });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: MESSAGES.ADDRESS_NOT_FOUND });
     }
 
     const addressIndex = address.address.findIndex(
       (addr) => addr._id.toString() === address_id,
     );
     if (addressIndex === -1) {
-      return res.status(404).json({ error: "Address not found in array" });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: MESSAGES.ADDRESS_NOT_FOUND_IN_ARRAY });
     }
 
     address.address[addressIndex] = {
@@ -124,7 +126,7 @@ const editCheckoutAddress = async (req, res) => {
     res.redirect("/checkout");
   } catch (error) {
     console.log("error in editCheckoutAddress", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -178,7 +180,7 @@ const addCheckoutAddress = async (req, res) => {
     res.redirect("/checkout");
   } catch (error) {
     console.log("error in addCheckoutAddress", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -195,20 +197,19 @@ const placeOrder = async (req, res) => {
 
     if (totalAmount < 0) {
       return res
-        .status(400)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .json({
           success: false,
-          error:
-            "Some products are not available and have been removed from your cart.",
+          error: MESSAGES.SOME_PRODUCTS_ARE_NOT_AVAILABLE_AND_HAVE,
         });
     }
 
     if (paymentMethod === "cod" && totalAmount > 10000) {
       return res
-        .status(400)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .json({
           success: false,
-          error: "Maximum order amount for COD is ₹10000",
+          error: MESSAGES.MAXIMUM_ORDER_AMOUNT_FOR_COD_IS_10000,
         });
     }
 
@@ -219,8 +220,8 @@ const placeOrder = async (req, res) => {
 
     if (!address) {
       return res
-        .status(400)
-        .json({ success: false, message: "Invalid shipping address" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.INVALID_SHIPPING_ADDRESS });
     }
 
     const orderAddress = address.address.find(
@@ -263,10 +264,9 @@ const placeOrder = async (req, res) => {
     }
 
     if (unavailableItems.length > 0) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        error:
-          "Some products have become unavailable since you added them to your cart",
+        error: MESSAGES.SOME_PRODUCTS_HAVE_BECOME_UNAVAILABLE_SI,
         unavailableItems: unavailableItems,
       });
     }
@@ -276,8 +276,8 @@ const placeOrder = async (req, res) => {
       coupon = await Coupon.findOne({ couponCode: couponCode });
       if (!coupon) {
         return res
-          .status(400)
-          .json({ success: false, error: "Invalid coupon code" });
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json({ success: false, error: MESSAGES.INVALID_COUPON_CODE });
       }
     }
 
@@ -286,8 +286,8 @@ const placeOrder = async (req, res) => {
 
     if (isNaN(cleanedTotal)) {
       return res
-        .status(400)
-        .json({ success: false, error: "Invalid total amount" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, error: MESSAGES.INVALID_TOTAL_AMOUNT });
     }
 
     if (
@@ -298,8 +298,8 @@ const placeOrder = async (req, res) => {
       !orderedItems
     ) {
       return res
-        .status(400)
-        .json({ success: false, error: "Please fill all the fields" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, error: MESSAGES.PLEASE_FILL_ALL_THE_FIELDS });
     }
 
     const orderedItemsWithDetails = await Promise.all(
@@ -367,16 +367,16 @@ const placeOrder = async (req, res) => {
 
     await Cart.findOneAndUpdate({ userId }, { $set: { items: [] } });
 
-    return res.status(200).json({
+    return res.status(HTTP_STATUS.OK).json({
       success: true,
       orderId: newOrder._id,
-      message: "Order placed successfully",
+      message: MESSAGES.ORDER_PLACED_SUCCESSFULLY,
     });
   } catch (error) {
     console.error("Order placement error:", error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      error: "Failed to place order. Please try again.",
+      error: MESSAGES.FAILED_TO_PLACE_ORDER_PLEASE_TRY_AGAIN,
     });
   }
 };
@@ -420,22 +420,22 @@ const validateCheckoutItems = async (req, res) => {
     }
 
     if (unavailableItems.length > 0) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        error: "Some products have become unavailable",
+        error: MESSAGES.SOME_PRODUCTS_HAVE_BECOME_UNAVAILABLE,
         unavailableItems: unavailableItems,
       });
     }
 
     return res.json({
       success: true,
-      message: "All products are available",
+      message: MESSAGES.ALL_PRODUCTS_ARE_AVAILABLE,
     });
   } catch (error) {
     console.error("Error validating checkout items:", error);
-    return res.status(500).json({
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      error: "Failed to validate items. Please try again.",
+      error: MESSAGES.FAILED_TO_VALIDATE_ITEMS_PLEASE_TRY_AGAI,
     });
   }
 };
@@ -488,20 +488,20 @@ const cancelOrder = async (req, res) => {
     const userId = req.session.user;
 
     if (!userId) {
-      return res.status(401).json({ success: false, message: "Unauthorised" });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, message: MESSAGES.UNAUTHORIZED });
     }
 
     const order = await Order.findById(orderId);
 
     if (!orderReason) {
       return res
-        .status(400)
-        .json({ success: false, message: "Reason is required" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.REASON_IS_REQUIRED });
     }
     if (!order) {
       return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
     for (let item of order.order_items) {
       const updatedProduct = await Product.findByIdAndUpdate(
@@ -538,13 +538,13 @@ const cancelOrder = async (req, res) => {
     }
 
     return res
-      .status(200)
-      .json({ success: true, message: "Order cancelled successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.ORDER_CANCELLED_SUCCESSFULLY });
   } catch (error) {
     console.error("Error cancelling order:", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 const applyCoupon = async (req, res) => {
@@ -553,19 +553,19 @@ const applyCoupon = async (req, res) => {
     const coupon = await Coupon.findOne({ couponCode, isActive: true });
     if (!coupon) {
       return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired coupon" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.INVALID_OR_EXPIRED_COUPON });
     }
     const currentDate = new Date();
     if (coupon.couponValidity < currentDate) {
       return res
-        .status(400)
-        .json({ success: false, message: "Coupon has expired" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.COUPON_HAS_EXPIRED });
     }
     if (coupon.limit <= 0) {
       return res
-        .status(400)
-        .json({ success: false, message: "Coupon has reached its limit" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.COUPON_HAS_REACHED_ITS_LIMIT });
     }
 
     let discount = 0;
@@ -588,18 +588,18 @@ const applyCoupon = async (req, res) => {
     await coupon.save();
 
     return res
-      .status(200)
+      .status(HTTP_STATUS.OK)
       .json({
         success: true,
-        message: "Coupon applied successfully",
+        message: MESSAGES.COUPON_APPLIED_SUCCESSFULLY,
         discount,
         newTotal,
       });
   } catch (error) {
     console.log("error applying coupon", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -609,7 +609,7 @@ const removeCoupon = async (req, res) => {
     const coupon = await Coupon.findOne({ couponCode: couponCode });
 
     if (!coupon) {
-      return res.json({ success: false, message: "Invalid coupon" });
+      return res.json({ success: false, message: MESSAGES.INVALID_COUPON });
     }
 
     coupon.limit += 1;
@@ -621,13 +621,13 @@ const removeCoupon = async (req, res) => {
     res.json({
       success: true,
       cartTotal,
-      message: "Coupon removed successfully",
+      message: MESSAGES.COUPON_REMOVED_SUCCESSFULLY,
     });
   } catch (error) {
     console.error("Error removing coupon:", error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Server error while removing coupon",
+      message: MESSAGES.SERVER_ERROR_WHILE_REMOVING_COUPON,
     });
   }
 };
@@ -637,7 +637,7 @@ const generateInvoice = async (req, res) => {
     const orderId = req.params.id;
 
     if (!orderId) {
-      return res.status(400).send("Invalid Order ID");
+      return res.status(HTTP_STATUS.BAD_REQUEST).send(MESSAGES.INVALID_ORDER_ID);
     }
 
     const order = await Order.findById(orderId)
@@ -652,7 +652,7 @@ const generateInvoice = async (req, res) => {
       : "Customer";
 
     if (!order) {
-      return res.status(404).send("Order not found");
+      return res.status(HTTP_STATUS.NOT_FOUND).send(MESSAGES.ORDER_NOT_FOUND);
     }
 
     const invoiceDir = path.join(__dirname, "../../publics/invoices");
@@ -870,13 +870,13 @@ const generateInvoice = async (req, res) => {
       res.download(invoicePath, `invoice-${orderId}.pdf`, (err) => {
         if (err) {
           console.error("Download error:", err);
-          res.status(500).send("Error downloading invoice");
+          res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.ERROR_DOWNLOADING_INVOICE);
         }
       });
     });
   } catch (error) {
     console.error("Invoice Generation Error:", error);
-    res.status(500).send("Error generating invoice");
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.ERROR_GENERATING_INVOICE);
   }
 };
 

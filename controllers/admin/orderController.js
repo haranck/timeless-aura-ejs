@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
@@ -38,7 +40,7 @@ const getOrdersPage = async (req, res) => {
       totalPages,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -49,16 +51,16 @@ const updateOrder = async (req, res) => {
 
     if (!orderId || !status) {
       return res
-        .status(400)
-        .json({ success: false, message: "order ID and status are required" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.ORDER_ID_AND_STATUS_ARE_REQUIRED });
     }
 
     const order = await Order.findById(orderId);
 
     if (!order) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
 
     order.status = status;
@@ -76,15 +78,15 @@ const updateOrder = async (req, res) => {
     await order.save();
 
     res
-      .status(200)
+      .status(HTTP_STATUS.OK)
       .json({
         success: true,
-        message: "order updated successfully",
+        message: MESSAGES.ORDER_UPDATED_SUCCESSFULLY,
         status: order.status,
       });
   } catch (error) {
     console.log("error updating order", error);
-    res.status(500).json({ success: false, message: "internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -94,16 +96,16 @@ const cancelOrder = async (req, res) => {
 
     if (!orderId) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
 
     const order = await Order.findById(orderId);
 
     if (!order) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
 
     order.status = "cancelled";
@@ -119,11 +121,11 @@ const cancelOrder = async (req, res) => {
     await order.save();
 
     res
-      .status(200)
-      .json({ success: true, message: "order cancelled successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.ORDER_CANCELLED_SUCCESSFULLY });
   } catch (error) {
     console.log("error cancelling order", error);
-    res.status(500).json({ success: false, message: "internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -132,8 +134,8 @@ const approveReturn = async (req, res) => {
     const { orderId } = req.body;
     if (!orderId) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
     const order = await Order.findByIdAndUpdate(orderId, {
       status: "Return approved",
@@ -166,10 +168,10 @@ const approveReturn = async (req, res) => {
 
     await wallet.save();
 
-    res.status(200).json({ success: true, message: "Return approved" });
+    res.status(HTTP_STATUS.OK).json({ success: true, message: MESSAGES.RETURN_APPROVED });
   } catch (error) {
     console.log("error approving return", error);
-    res.status(500).json({ success: false, message: "internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -182,24 +184,24 @@ const rejectReturn = async (req, res) => {
 
     if (!orderId) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
     const order = await Order.findById(orderId);
     if (!order) {
       return res
-        .status(404)
-        .json({ success: false, message: "order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
     order.status = "Return rejected";
     order.adminReturnStatus = reason;
 
     await order.save();
 
-    res.status(200).json({ success: true, message: "Return rejected" });
+    res.status(HTTP_STATUS.OK).json({ success: true, message: MESSAGES.RETURN_REJECTED });
   } catch (error) {
     console.log("error rejecting return", error);
-    res.status(500).json({ success: false, message: "internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -290,7 +292,7 @@ const getSalesReport = async (req, res) => {
     });
   } catch (error) {
     console.log("Error getting sales report", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -483,14 +485,14 @@ const getSalesReportPDF = async (req, res) => {
       res.download(filePath, "TIMELESS_AURA_sales_report.pdf", (err) => {
         if (err) {
           console.error("Error downloading PDF:", err);
-          res.status(500).send("Error downloading PDF");
+          res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.ERROR_DOWNLOADING_PDF);
         }
         fs.unlinkSync(filePath);
       });
     });
   } catch (error) {
     console.log("Error generating sales report PDF", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 const getSalesReportExcel = async (req, res) => {
@@ -652,7 +654,7 @@ const getSalesReportExcel = async (req, res) => {
     res.end();
   } catch (error) {
     console.log("Error generating Excel report", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 

@@ -1,4 +1,6 @@
 const User = require("../models/userSchema");
+const HTTP_STATUS = require("../constants/httpStatusCodes");
+const MESSAGES = require("../constants/messages");
 
 const userAuth = (req, res, next) => {
   if (req.session.user) {
@@ -14,7 +16,7 @@ const userAuth = (req, res, next) => {
       })
       .catch((error) => {
         console.log("Error in user auth middlware");
-        res.status(500).send("Internal Server Error");
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.INTERNAL_SERVER_ERROR);
       });
   } else {
     res.redirect("/login");
@@ -49,7 +51,7 @@ const adminAuth = (req, res, next) => {
     })
     .catch((error) => {
       console.log("Error in adminAuth middleware", error);
-      res.status(500).send("Internal Server Error");
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send(MESSAGES.INTERNAL_SERVER_ERROR);
     });
 };
 

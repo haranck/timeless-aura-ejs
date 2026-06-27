@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
@@ -27,20 +29,20 @@ const login = async (req, res) => {
         return res.redirect("/admin");
       } else if (!email || !password) {
         return res.render("admin-login", {
-          message: "Please enter email and password",
+          message: MESSAGES.PLEASE_ENTER_EMAIL_AND_PASSWORD,
         });
       } else {
-        return res.render("admin-login", { message: "Incorrect password" });
+        return res.render("admin-login", { message: MESSAGES.INCORRECT_PASSWORD });
       }
     } else {
       return res.render("admin-login", {
-        message: "Please enter valid email and password",
+        message: MESSAGES.PLEASE_ENTER_VALID_EMAIL_AND_PASSWORD,
       });
     }
   } catch (error) {
     console.log("Login error:", error);
     return res.render("admin-login", {
-      message: "An error occurred, please try again",
+      message: MESSAGES.AN_ERROR_OCCURRED_PLEASE_TRY_AGAIN,
     });
   }
 };
@@ -159,7 +161,7 @@ const loadDashboard = async (req, res) => {
     });
   } catch (err) {
     console.log("Dashboard load error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -168,15 +170,15 @@ const getDashboardDataAPI = async (req, res) => {
     const { timeFilter } = req.query;
     if (!timeFilter) {
       return res
-        .status(400)
-        .json({ error: "timeFilter parameter is required" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: MESSAGES.TIMEFILTER_PARAMETER_IS_REQUIRED });
     }
 
     const dashboardData = await getDashboardData(timeFilter);
     res.json(dashboardData);
   } catch (err) {
     console.log("Dashboard data API error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -526,7 +528,7 @@ const logout = async (req, res) => {
   try {
     req.session.admin = false;
 
-    res.render("admin-login", { message: "Successfully logged out" });
+    res.render("admin-login", { message: MESSAGES.SUCCESSFULLY_LOGGED_OUT });
   } catch (error) {
     console.log("unexpected error during logout ", error);
     res.redirect("/pageerror");

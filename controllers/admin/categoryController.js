@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const Category = require("../../models/categorySchema");
 
 const categoryInfo = async (req, res) => {
@@ -33,18 +35,18 @@ const addCategory = async (req, res) => {
       name: { $regex: `^${name}$`, $options: "i" },
     });
     if (existingCategory) {
-      return res.status(400).json({ message: "Category already exists" });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MESSAGES.CATEGORY_ALREADY_EXISTS });
     }
 
     const newCategory = new Category({ name, description, categoryOffer });
     await newCategory.save();
     return res
-      .status(201)
-      .json({ success: true, message: "Category created successfully" });
+      .status(HTTP_STATUS.CREATED)
+      .json({ success: true, message: MESSAGES.CATEGORY_CREATED_SUCCESSFULLY });
   } catch (error) {
     console.log("error adding category", error);
     throw new Error();
-    // return res.status(500).json({ message: "Internal server error" })
+    // return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.INTERNAL_SERVER_ERROR })
   }
 };
 
@@ -54,17 +56,17 @@ const toggleCategory = async (req, res) => {
     const category = await Category.findById(id);
     if (!category) {
       return res
-        .status(404)
-        .json({ success: false, message: "Category not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.CATEGORY_NOT_FOUND });
     }
     category.isListed = !category.isListed;
     await category.save();
     return res
-      .status(200)
-      .json({ success: true, message: "Category updated successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.CATEGORY_UPDATED_SUCCESSFULLY });
   } catch (error) {
     console.log("error toggling category", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 const getEditCategory = async (req, res) => {
@@ -85,24 +87,24 @@ const editCategory = async (req, res) => {
     const categoryId = req.params.id;
 
     if (!categoryName || categoryName.trim().length < 3) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Category name must be at least 3 characters long",
+        message: MESSAGES.CATEGORY_NAME_MUST_BE_AT_LEAST_3_CHARACT,
       });
     }
 
     if (!categoryDescription || categoryDescription.trim().length < 10) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Description must be at least 10 characters long",
+        message: MESSAGES.DESCRIPTION_MUST_BE_AT_LEAST_10_CHARACTE,
       });
     }
 
     const offer = parseFloat(categoryOffer);
     if (isNaN(offer) || offer < 0 || offer > 100) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "Category offer must be a number between 0 and 100",
+        message: MESSAGES.CATEGORY_OFFER_MUST_BE_A_NUMBER_BETWEEN,
       });
     }
 
@@ -112,9 +114,9 @@ const editCategory = async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: "A category with this name already exists",
+        message: MESSAGES.A_CATEGORY_WITH_THIS_NAME_ALREADY_EXISTS,
       });
     }
 
@@ -129,22 +131,22 @@ const editCategory = async (req, res) => {
     );
 
     if (!updatedCategory) {
-      return res.status(404).json({
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
-        message: "Category not found",
+        message: MESSAGES.CATEGORY_NOT_FOUND,
       });
     }
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: "Category updated successfully",
+      message: MESSAGES.CATEGORY_UPDATED_SUCCESSFULLY,
       category: updatedCategory,
     });
   } catch (error) {
     console.error("Edit Category Error:", error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "An error occurred while updating the category",
+      message: MESSAGES.AN_ERROR_OCCURRED_WHILE_UPDATING_THE_CAT,
       error: error.message,
     });
   }

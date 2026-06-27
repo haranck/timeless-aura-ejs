@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 const Wallet = require("../../models/walletSchema");
 const Product = require("../../models/productSchema");
@@ -9,7 +11,7 @@ const addMoney = async (req, res) => {
     const userId = req.session.user;
 
     if (!userId) {
-      return res.status(401).json({ success: false, message: "Unauthorised" });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, message: MESSAGES.UNAUTHORIZED });
     }
 
     let wallet = await Wallet.findOne({ userId: userId });
@@ -30,13 +32,13 @@ const addMoney = async (req, res) => {
     });
     await wallet.save();
     return res
-      .status(200)
-      .json({ success: true, message: "Money added successfully" });
+      .status(HTTP_STATUS.OK)
+      .json({ success: true, message: MESSAGES.MONEY_ADDED_SUCCESSFULLY });
   } catch (error) {
     console.log("error in add money", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -47,25 +49,25 @@ const returnOrder = async (req, res) => {
     const userId = req.session.user;
 
     if (!userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, message: MESSAGES.UNAUTHORIZED });
     }
     if (!reason) {
       return res
-        .status(400)
-        .json({ success: false, message: "Return reason is required" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.RETURN_REASON_IS_REQUIRED });
     }
 
     const order = await Order.findById(orderId);
     if (!order || order.status !== "delivered") {
-      return res.status(404).json({ success: false, message: "invalid Order" });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: MESSAGES.INVALID_ORDER });
     }
 
     if (order.status !== "delivered") {
       return res
-        .status(400)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .json({
           success: false,
-          message: "Only delivered orders can be returned",
+          message: MESSAGES.ONLY_DELIVERED_ORDERS_CAN_BE_RETURNED,
         });
     }
 
@@ -74,16 +76,16 @@ const returnOrder = async (req, res) => {
     await order.save();
 
     return res
-      .status(200)
+      .status(HTTP_STATUS.OK)
       .json({
         success: true,
-        message: "Product return request sended update status later....",
+        message: MESSAGES.PRODUCT_RETURN_REQUEST_SENDED_UPDATE_STA,
       });
   } catch (error) {
     console.log("error in return order", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 

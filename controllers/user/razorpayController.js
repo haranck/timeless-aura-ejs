@@ -1,3 +1,5 @@
+const MESSAGES = require("../../constants/messages");
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
 const Razorpay = require("razorpay");
 require("dotenv").config();
 const crypto = require("crypto");
@@ -22,7 +24,7 @@ const createOrder = async (req, res) => {
     };
 
     const order = await razorpayInstance.orders.create(options);
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       order_id: order.id,
       amount: order.amount,
@@ -31,7 +33,7 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating order:", error);
-    res.status(500).json({ success: false, error: "Failed to create order" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: MESSAGES.FAILED_TO_CREATE_ORDER });
   }
 };
 
@@ -50,8 +52,8 @@ const verifyPayment = async (req, res) => {
 
     if (!req.session.user) {
       return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
+        .status(HTTP_STATUS.UNAUTHORIZED)
+        .json({ success: false, message: MESSAGES.NOT_AUTHENTICATED });
     }
     const userAddress = await Address.findOne({
       userId: req.session.user,
@@ -60,8 +62,8 @@ const verifyPayment = async (req, res) => {
 
     if (!userAddress) {
       return res
-        .status(400)
-        .json({ success: false, message: "Invalid shipping address" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.INVALID_SHIPPING_ADDRESS });
     }
     const selectedAddress = userAddress.address.find(
       (addr) => addr._id.toString() === shippingAddress,
@@ -71,8 +73,8 @@ const verifyPayment = async (req, res) => {
 
     if (!selectedAddress) {
       return res
-        .status(400)
-        .json({ success: false, message: "Selected address not found" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.SELECTED_ADDRESS_NOT_FOUND });
     }
 
     const parsedOrderItems =
@@ -148,7 +150,6 @@ const verifyPayment = async (req, res) => {
         orderId: savedOrder._id,
       });
     } else {
-      // res.status(400).json({ success: false, message: "Payment verification failed" });
       const parsedOrderItems =
         typeof orderedItems === "string"
           ? JSON.parse(orderedItems)
@@ -192,18 +193,18 @@ const verifyPayment = async (req, res) => {
       await failedOrder.save();
 
       res
-        .status(400)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .json({
           success: false,
-          message: "Payment verification failed",
+          message: MESSAGES.PAYMENT_VERIFICATION_FAILED,
           orderId: failedOrder._id,
         });
     }
   } catch (error) {
     console.error("Payment Verification Error:", error);
     res
-      .status(500)
-      .json({ success: false, message: "Failed to verify payment" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.FAILED_TO_VERIFY_PAYMENT });
   }
 };
 
@@ -234,14 +235,14 @@ const retryPayment = async (req, res) => {
     const failedOrder = await Order.findById(orderId);
     if (!failedOrder || failedOrder.user_id.toString() !== req.session.user) {
       return res
-        .status(404)
-        .json({ success: false, message: "Order not found or not authorized" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND_OR_NOT_AUTHORIZED });
     }
 
     if (failedOrder.status !== "failed") {
       return res
-        .status(400)
-        .json({ success: false, message: "This order cannot be retried" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.THIS_ORDER_CANNOT_BE_RETRIED });
     }
 
     const options = {
@@ -263,8 +264,8 @@ const retryPayment = async (req, res) => {
   } catch (error) {
     console.error("Retry Payment Error:", error);
     res
-      .status(500)
-      .json({ success: false, message: "Failed to retry payment" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.FAILED_TO_RETRY_PAYMENT });
   }
 };
 
@@ -279,15 +280,15 @@ const verifyRetryPayment = async (req, res) => {
 
     if (!req.session.user) {
       return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
+        .status(HTTP_STATUS.UNAUTHORIZED)
+        .json({ success: false, message: MESSAGES.NOT_AUTHENTICATED });
     }
 
     const failedOrder = await Order.findById(orderId);
     if (!failedOrder) {
       return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ success: false, message: MESSAGES.ORDER_NOT_FOUND });
     }
 
     const generatedSignature = crypto
@@ -333,14 +334,14 @@ const verifyRetryPayment = async (req, res) => {
     } else {
       console.log("Retry Payment failed: Signature Mismatch");
       res
-        .status(400)
-        .json({ success: false, message: "Payment verification failed" });
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ success: false, message: MESSAGES.PAYMENT_VERIFICATION_FAILED });
     }
   } catch (error) {
     console.error("Retry Payment Verification Error:", error);
     res
-      .status(500)
-      .json({ success: false, message: "Failed to verify payment" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.FAILED_TO_VERIFY_PAYMENT });
   }
 };
 

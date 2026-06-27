@@ -1,3 +1,5 @@
+const HTTP_STATUS = require("../../constants/httpStatusCodes");
+const MESSAGES = require("../../constants/messages");
 const User = require("../../models/userSchema");
 
 const customerInfo = async (req, res) => {
@@ -55,8 +57,8 @@ const toggleBlock = async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ success: false, message: MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 
